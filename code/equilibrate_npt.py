@@ -47,8 +47,6 @@ simulation.minimizeEnergy()
 simulation.context.setVelocitiesToTemperature(temperature)
 print('Equilibrating...')
 
-simulation.step(25000)  # Don't even save the first 25 ps
-
 simulation.reporters.append(app.DCDReporter(dcd_filename, output_frequency))
 simulation.reporters.append(app.PDBReporter(out_pdb_filename, n_steps - 1))
 simulation.reporters.append(app.StateDataReporter(open(log_filename, 'w'), output_frequency, step=True, time=True, speed=True))
