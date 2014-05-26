@@ -19,18 +19,23 @@ log_filename = "./equil_npt/%s_%s_%s.log" % (code, ff_name, water_name)
 padding = 0.9 * u.nanometers
 cutoff = 0.95 * u.nanometers
 output_frequency = 1000
-n_steps = 50000
+n_steps = 25000
 
-trj = md.load(pdb_filename).stack(md.load(ligand_filename))
-trj.save('./equil_npt/3DMX_amber99sbildn_tip3p_initial.pdb')
+protein_traj = md.load(pdb_filename)
+protein_top = protein_traj.top.to_openmm()
+protein_xyz = protein_traj.openmm_positions(0)
+
+ligand_traj = md.load(ligand_filename)
+ligand_xyz = ligand_traj.openmm_positions(0)
+ligand_top = ligand_traj.top.to_openmm()
 
 ff = app.ForceField(which_forcefield, "benzene.xml", which_water)
 
 temperature = 300.
 pressure = 1.0 * u.atmospheres
 
-
-modeller = app.Modeller(trj.top.to_openmm(), trj.openmm_positions(0))
+modeller = app.modeller.Modeller(protein_top, protein_xyz)
+modeller.add(ligand_top, ligand_xyz)
 modeller.addSolvent(ff, padding=padding, model='tip3p')
 
 topology = modeller.topology
@@ -49,9 +54,6 @@ simulation.context.setVelocitiesToTemperature(temperature)
 print('Equilibrating...')
 
 simulation.reporters.append(app.DCDReporter(dcd_filename, output_frequency))
-#simulation.reporters.append(app.PDBReporter(out_pdb_filename, n_steps - 1))
-simulation.reporters.append(md.reporters.PDBReporter(out_pdb_filename, n_steps - 1))
+simulation.reporters.append(app.PDBReporter(out_pdb_filename, n_steps - 1))
 simulation.reporters.append(app.StateDataReporter(open(log_filename, 'w'), output_frequency, step=True, time=True, speed=True))
 simulation.step(n_steps)
-
-# NEED TO MANUALLY ADD CONNECT TO OUTPUT PDB from initial.pdb
