@@ -1,3 +1,4 @@
+import numpy as np
 import mdtraj as md
 from simtk.openmm import app
 import simtk.openmm as mm
@@ -13,16 +14,13 @@ which_forcefield = "%s.xml" % ff_name
 which_water = '%s.xml' % water_name
 
 ligand_filename = "./benzene2.pdb"
-out_pdb_filename = "./box/%s_%s_%s.pdb" % (code, ff_name, water_name)
-dcd_filename = "./box/%s_%s_%s.dcd" % (code, ff_name, water_name)
-log_filename = "./box/%s_%s_%s.log" % (code, ff_name, water_name)
 
 padding = 0.9 * u.nanometers
 cutoff = 0.95 * u.nanometers
 output_frequency = 1000
 
 n_equil_steps = 15000
-n_steps = 500000
+n_steps = 50000000
 
 
 ligand_traj = md.load(ligand_filename)
@@ -42,7 +40,7 @@ positions = modeller.positions
 
 system = ff.createSystem(topology, nonbondedMethod=app.PME, nonbondedCutoff=cutoff, constraints=app.HBonds)
 
-desired_temperature = 700. * u.kelvin
+desired_temperature = 300. * u.kelvin
 hot_atoms = np.arange(12)
 rest.REST.perturb_system(system, temperature=desired_temperature, reference_temperature=temperature, hot_atoms=hot_atoms)
 
@@ -58,8 +56,10 @@ print('Equilibrating...')
 simulation.step(n_equil_steps)
 
 print('Production...')
+dcd_filename = "./water/%s_%s_%s_%s.dcd" % (code, ff_name, water_name, desired_temperature)
+log_filename = "./water/%s_%s_%s_%s.log" % (code, ff_name, water_name, desired_temperature)
+
 simulation.reporters.append(app.DCDReporter(dcd_filename, output_frequency))
-simulation.reporters.append(app.PDBReporter(out_pdb_filename, n_steps - 1))
 simulation.reporters.append(app.StateDataReporter(open(log_filename, 'w'), output_frequency, step=True, time=True, speed=True))
 
 simulation.step(n_steps)

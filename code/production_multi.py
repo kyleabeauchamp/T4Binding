@@ -44,7 +44,7 @@ positions = modeller.positions
 system = ff.createSystem(topology, nonbondedMethod=app.PME, nonbondedCutoff=cutoff, constraints=app.HBonds)
 system.addForce(mm.MonteCarloBarostat(pressure, temperature, 25))
 
-temperature_tuple = (450., 1600.)
+temperature_tuple = (500., 1600.)
 
 hot_atom_lists = []
 hot_atom_lists.append(np.arange(2637))
@@ -61,8 +61,8 @@ simulation.minimizeEnergy()
 simulation.context.setVelocitiesToTemperature(temperature)
 print('Production...')
 
-dcd_filename = "./production/%s_%s_%s_%s.dcd" % (code, ff_name, water_name, desired_temperature)
-log_filename = "./production/%s_%s_%s_%s.log" % (code, ff_name, water_name, desired_temperature)
+dcd_filename = "./production/multi.dcd"
+log_filename = "./production/multi.log"
 
 print("Using platform %s" % simulation.context.getPlatform().getName())
 simulation.reporters.append(app.DCDReporter(dcd_filename, output_frequency))
